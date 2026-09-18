@@ -1,0 +1,35 @@
+name: build-apk
+
+on: [push, workflow_dispatch]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: unzip-source
+        run: |
+          shopt -s nullglob
+          for z in *.zip; do unzip -qo "$z"; done
+          ls -la
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: build
+        run: gradle assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kashaf-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
